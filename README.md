@@ -36,4 +36,6 @@ See [Configuration Reference](https://cli.vuejs.org/config/).
 - unidirectional conversion with tests
 - chartJS line graph for the last 30 days
    - The historical chart for now only shows data for EUR/USD.
-I attempted to fix the reactivity of it when changing the base currency but I ran out of time :(
+I attempted to fix the reactivity of the chart when changing the base currency but I ran out of time before fixing that part.
+
+Note: I used vue-cli to set up the app since I just learnt Vue for the sake of this test 🙂
