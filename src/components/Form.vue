@@ -41,6 +41,7 @@ export default {
     apiRates: Object,
     date: String,
     symbols: Array,
+    updateCurrencies: Function,
     updateRates: Function
   },
   computed: {
@@ -60,8 +61,13 @@ export default {
   },
   watch: {
     base() {
-      const { updateRates, base } = this;
+      const { updateCurrencies, updateRates, base, target } = this;
+      updateCurrencies(base, target);
       updateRates(base);
+    },
+    target() {
+      const { updateCurrencies, base, target } = this;
+      updateCurrencies(base, target);
     }
   }
 };

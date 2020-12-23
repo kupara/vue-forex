@@ -1,4 +1,4 @@
 module.exports = {
-  preset: '@vue/cli-plugin-unit-jest',
-  setupFilesAfterEnv: ['./jest.setup.js'],
+  preset: "@vue/cli-plugin-unit-jest",
+  setupFilesAfterEnv: ["./jest.setup.js"]
 };

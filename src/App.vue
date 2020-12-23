@@ -7,10 +7,18 @@
           :symbols="symbols"
           :apiRates="apiRates"
           :date="date"
+          :updateCurrencies="updateCurrencies"
           :updateRates="updateRates"
         />
       </div>
-      <div class="history"><HistoryChart /></div>
+      <div class="history" v-if="Boolean(historicalData)">
+        <h3>Data for the last month EUR vs USD</h3>
+        <HistoryChart
+          :historicalData="historicalData"
+          :target="target"
+          :options="{ responsive: true, maintainAspectRatio: false }"
+        />
+      </div>
     </div>
   </div>
 </template>
@@ -20,8 +28,8 @@ import axios from "axios";
 import Form from "./components/Form.vue";
 import Header from "./components/Header.vue";
 import HistoryChart from "./components/Chart.vue";
-
-const BASE_URL = "https://api.exchangeratesapi.io/latest?";
+import { fetchHistoricalData } from "./utils";
+import BASE_URL from "./constants";
 
 export default {
   name: "App",
@@ -33,7 +41,10 @@ export default {
   data() {
     return {
       apiRates: {},
-      date: ""
+      date: "",
+      base: "EUR",
+      target: "USD",
+      historicalData: null
     };
   },
   computed: {
@@ -44,19 +55,27 @@ export default {
   },
   methods: {
     updateRates: async function(base) {
-      const response = await fetch(`${BASE_URL}base=${base}`, {
+      const response = await fetch(`${BASE_URL}/latest?base=${base}`, {
         method: "GET"
       });
       const { date, rates } = await response.json();
       this.apiRates = rates;
       this.date = date;
+      this.historicalData = await fetchHistoricalData(base, this.target);
+    },
+    updateCurrencies(base, target) {
+      this.base = base;
+      this.target = target;
     }
   },
   mounted: async function() {
-    const response = await axios.get(`${BASE_URL}base=EUR`);
+    const { base, target } = this;
+    const response = await axios.get(`${BASE_URL}/latest?base=EUR`);
     const { date, rates } = response.data;
     this.apiRates = rates;
     this.date = date;
+
+    this.historicalData = await fetchHistoricalData(base, target);
   }
 };
 </script>
@@ -73,7 +92,7 @@ export default {
 .container {
   display: grid;
   grid-template-columns: 1fr;
-  grid-template-rows: minmax(300px, auto);
+  grid-template-rows: minmax(100px, auto);
   grid-template-areas:
     "form"
     "history";

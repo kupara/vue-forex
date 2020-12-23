@@ -1,16 +1,29 @@
-<template>
-  <div class="hello">
-    <p>
-      A chart is gonna go here
-    </p>
-  </div>
-</template>
-
 <script>
+import { Line, mixins } from "vue-chartjs";
+
 export default {
-  name: "HistoryChart",
-  props: {
-    msg: String
+  extends: Line,
+  data() {
+    const { rates } = this.historicalData;
+    const labels = Object.keys(rates);
+    const data = labels.map(label => rates[label][this.target]);
+    return {
+      chartData: {
+        labels,
+        datasets: [
+          {
+            label: "Historical data",
+            backgroundColor: "#2c3e50",
+            data
+          }
+        ]
+      }
+    };
+  },
+  props: ["historicalData", "options", "target"],
+  mixins: [mixins.reactiveData],
+  mounted() {
+    this.renderChart(this.chartData, this.options);
   }
 };
 </script>
