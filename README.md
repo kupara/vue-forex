@@ -1,5 +1,3 @@
-# adyen-test
-
 ## Project setup
 
 ```
