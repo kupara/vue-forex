@@ -32,7 +32,8 @@ yarn lint
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
-NOTES:
-
-The historical chart for now only shows data for EUR/USD.
+### Features implemented (within time):
+- unidirectional conversion with tests
+- chartJS line graph for the last 30 days
+   - The historical chart for now only shows data for EUR/USD.
 I attempted to fix the reactivity of it when changing the base currency but I ran out of time :(
