@@ -20,7 +20,7 @@
     </div>
     <div class="input-group">
       <label for="target">Target amount:</label>
-      <input id="target" type="number" v-model="targetValue" />
+      <input id="target" type="number" v-model="targetValue" :readonly="true" />
       <select v-model="target" id="targetCurrency">
         <option
           v-for="(symbol, index) in symbols"
