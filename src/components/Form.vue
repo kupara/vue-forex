@@ -8,7 +8,11 @@
         placeholder="Enter amount"
         v-model="sourceValue"
       />
-      <select v-model="base" id="sourceCurrency">
+      <select
+        :value="base"
+        id="sourceCurrency"
+        @change="selectCurrency({ base: $event.target.value, target })"
+      >
         <option
           v-for="(symbol, index) in symbols"
           :key="index"
@@ -21,7 +25,11 @@
     <div class="input-group">
       <label for="target">Target amount:</label>
       <input id="target" type="number" v-model="targetValue" :readonly="true" />
-      <select v-model="target" id="targetCurrency">
+      <select
+        :value="target"
+        id="targetCurrency"
+        @change="selectCurrency({ base, target: $event.target.value })"
+      >
         <option
           v-for="(symbol, index) in symbols"
           :value="symbol"
@@ -36,38 +44,30 @@
 
 <script>
 export default {
-  name: "Form",
+  name: "CurrencyForm",
   props: {
     apiRates: Object,
+    base: String,
     date: String,
     symbols: Array,
-    updateCurrencies: Function,
-    updateRates: Function
+    target: String
   },
   computed: {
     targetValue() {
-      const { target, apiRates } = this;
+      const { target, apiRates, base, sourceValue } = this;
+      if (target === base) return sourceValue;
 
-      return this.sourceValue * apiRates[target];
+      return sourceValue * apiRates[target];
     }
   },
   data() {
     return {
-      base: "EUR",
-      sourceValue: 0,
-      target: "USD",
-      rate: ""
+      sourceValue: 0
     };
   },
-  watch: {
-    base() {
-      const { updateCurrencies, updateRates, base, target } = this;
-      updateCurrencies(base, target);
-      updateRates(base);
-    },
-    target() {
-      const { updateCurrencies, base, target } = this;
-      updateCurrencies(base, target);
+  methods: {
+    selectCurrency(value) {
+      this.$emit("currencyChange", value);
     }
   }
 };

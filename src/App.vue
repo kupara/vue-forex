@@ -1,19 +1,22 @@
 <template>
   <div id="app">
-    <Header />
+    <simple-header />
     <div class="container">
       <div class="form">
-        <Form
-          :symbols="symbols"
+        <currency-form
+          @currencyChange="updateCurrencies"
           :apiRates="apiRates"
+          :base="base"
           :date="date"
-          :updateCurrencies="updateCurrencies"
+          :symbols="symbols"
+          :target="target"
           :updateRates="updateRates"
         />
       </div>
       <div class="history" v-if="Boolean(historicalData)">
-        <h3>Data for the last month EUR vs USD</h3>
-        <HistoryChart
+        <h3>Data for the last month {{ base }} vs {{ target }}</h3>
+        <history-chart
+          v-if="loaded"
           :historicalData="historicalData"
           :target="target"
           :options="{ responsive: true, maintainAspectRatio: false }"
@@ -25,8 +28,8 @@
 
 <script>
 import axios from "axios";
-import Form from "./components/Form.vue";
-import Header from "./components/Header.vue";
+import CurrencyForm from "./components/Form.vue";
+import SimpleHeader from "./components/Header.vue";
 import HistoryChart from "./components/Chart.vue";
 import { fetchHistoricalData } from "./utils";
 import BASE_URL from "./constants";
@@ -34,8 +37,8 @@ import BASE_URL from "./constants";
 export default {
   name: "App",
   components: {
-    Form,
-    Header,
+    CurrencyForm,
+    SimpleHeader,
     HistoryChart
   },
   data() {
@@ -44,7 +47,8 @@ export default {
       date: "",
       base: "EUR",
       target: "USD",
-      historicalData: null
+      historicalData: null,
+      loaded: false
     };
   },
   computed: {
@@ -55,6 +59,7 @@ export default {
   },
   methods: {
     updateRates: async function(base) {
+      this.loaded = false;
       const response = await fetch(`${BASE_URL}/latest?base=${base}`, {
         method: "GET"
       });
@@ -62,8 +67,9 @@ export default {
       this.apiRates = rates;
       this.date = date;
       this.historicalData = await fetchHistoricalData(base, this.target);
+      this.loaded = true;
     },
-    updateCurrencies(base, target) {
+    updateCurrencies({ base, target }) {
       this.base = base;
       this.target = target;
     }
@@ -76,6 +82,19 @@ export default {
     this.date = date;
 
     this.historicalData = await fetchHistoricalData(base, target);
+    this.loaded = true;
+  },
+  watch: {
+    base() {
+      const { updateRates, base } = this;
+      updateRates(base);
+    },
+    target: async function() {
+      const { target, base } = this;
+      this.loaded = false;
+      this.historicalData = await fetchHistoricalData(base, target);
+      this.loaded = true;
+    }
   }
 };
 </script>

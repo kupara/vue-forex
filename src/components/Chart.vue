@@ -6,15 +6,9 @@ export default {
   data() {
     const { rates } = this.historicalData;
     const labels = Object.keys(rates);
-    labels.sort(function(a, b) {
-      a = a
-        .split("/")
-        .reverse()
-        .join("");
-      b = b
-        .split("/")
-        .reverse()
-        .join("");
+    labels.sort((a, b) => {
+      a = a.split("/").join("");
+      b = b.split("/").join("");
       return a > b ? 1 : a < b ? -1 : 0;
     });
 
