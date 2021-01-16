@@ -3,31 +3,8 @@ import { Line, mixins } from "vue-chartjs";
 
 export default {
   extends: Line,
-  data() {
-    const { rates } = this.historicalData;
-    const labels = Object.keys(rates);
-    labels.sort((a, b) => {
-      a = a.split("/").join("");
-      b = b.split("/").join("");
-      return a > b ? 1 : a < b ? -1 : 0;
-    });
-
-    const data = labels.map(label => rates[label][this.target]);
-    return {
-      chartData: {
-        labels,
-        datasets: [
-          {
-            label: "Historical data",
-            backgroundColor: "#2c3e50",
-            data
-          }
-        ]
-      }
-    };
-  },
-  props: ["historicalData", "options", "target"],
-  mixins: [mixins.reactiveData],
+  props: ["chartData", "options"],
+  mixins: [mixins.reactiveProp],
   mounted() {
     this.renderChart(this.chartData, this.options);
   }

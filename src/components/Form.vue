@@ -1,42 +1,44 @@
 <template>
   <div class="wrapper">
     <div class="input-group">
-      <label for="source">Source amount:</label>
-      <input
-        id="source"
-        type="number"
-        placeholder="Enter amount"
-        v-model="sourceValue"
-      />
-      <select
-        :value="base"
-        id="sourceCurrency"
-        @change="selectCurrency({ base: $event.target.value, target })"
-      >
-        <option
-          v-for="(symbol, index) in symbols"
-          :key="index"
-          :value="symbol"
-          :selected="symbol === base"
-          >{{ symbol }}</option
+      <label for="source">
+        Source amount:
+        <input type="number" placeholder="Enter amount" v-model="sourceValue" />
+        <select
+          :value="base"
+          id="sourceCurrency"
+          @change="selectCurrency({ base: $event.target.value, target })"
         >
-      </select>
+          <option
+            v-for="(symbol, index) in symbols"
+            :key="index"
+            :value="symbol"
+            :selected="symbol === base"
+          >
+            {{ symbol }}
+          </option>
+        </select>
+      </label>
     </div>
     <div class="input-group">
-      <label for="target">Target amount:</label>
-      <input id="target" type="number" v-model="targetValue" :readonly="true" />
-      <select
-        :value="target"
-        id="targetCurrency"
-        @change="selectCurrency({ base, target: $event.target.value })"
-      >
-        <option
-          v-for="(symbol, index) in symbols"
-          :value="symbol"
-          :key="'target' + index"
-          >{{ symbol }}</option
+      <label for="target">
+        Target amount:
+        <input type="number" v-model="targetValue" :readonly="true" />
+        <select
+          :value="target"
+          id="targetCurrency"
+          @change="selectCurrency({ base, target: $event.target.value })"
         >
-      </select>
+          <option
+            v-for="(symbol, index) in symbols"
+            :key="'target' + index"
+            :selected="symbol === target"
+            :value="symbol"
+          >
+            {{ symbol }}
+          </option>
+        </select>
+      </label>
     </div>
     <span> Date of retrieval: {{ date }}</span>
   </div>
@@ -45,13 +47,7 @@
 <script>
 export default {
   name: "CurrencyForm",
-  props: {
-    apiRates: Object,
-    base: String,
-    date: String,
-    symbols: Array,
-    target: String
-  },
+  props: ["apiRates", "base", "date", "symbols", "target"],
   computed: {
     targetValue() {
       const { target, apiRates, base, sourceValue } = this;
@@ -91,11 +87,14 @@ select {
   margin-left: 0.5rem;
 }
 
-input {
+input,
+label {
   flex: 1;
 }
 
 label {
+  display: flex;
+  align-items: center;
   padding: 0.75rem 0;
 }
 </style>

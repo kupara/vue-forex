@@ -10,15 +10,12 @@
           :date="date"
           :symbols="symbols"
           :target="target"
-          :updateRates="updateRates"
         />
       </div>
-      <div class="history" v-if="Boolean(historicalData)">
+      <div class="history">
         <h3>Data for the last month {{ base }} vs {{ target }}</h3>
         <history-chart
-          v-if="loaded"
-          :historicalData="historicalData"
-          :target="target"
+          :chartData="chartData"
           :options="{ responsive: true, maintainAspectRatio: false }"
         />
       </div>
@@ -47,27 +44,53 @@ export default {
       date: "",
       base: "EUR",
       target: "USD",
-      historicalData: null,
-      loaded: false
+      historicalData: null
     };
   },
   computed: {
     symbols() {
-      const { apiRates } = this;
-      return apiRates ? ["EUR", ...Object.keys(apiRates)] : [];
+      const { apiRates, base } = this;
+      const rateKeys = [...Object.keys(apiRates)];
+      if (rateKeys.includes(base)) {
+        rateKeys.splice(rateKeys.indexOf(base), 1);
+        return [this.base, ...rateKeys.sort()];
+      }
+      return [base, ...rateKeys.sort()];
+    },
+    chartData() {
+      const { target, historicalData } = this;
+      if (historicalData) {
+        const { rates } = this.historicalData;
+        const labels = [...Object.keys(rates)];
+
+        labels.sort((a, b) => {
+          a = a.split("-").join("");
+          b = b.split("-").join("");
+          return a.localeCompare(b);
+        });
+
+        const data = labels.map(label => rates[label][target] || 1);
+        return {
+          labels,
+          datasets: [
+            {
+              label: "Historical data",
+              backgroundColor: "#2c3e50",
+              data
+            }
+          ]
+        };
+      }
+      return null;
     }
   },
   methods: {
     updateRates: async function(base) {
-      this.loaded = false;
-      const response = await fetch(`${BASE_URL}/latest?base=${base}`, {
-        method: "GET"
-      });
-      const { date, rates } = await response.json();
+      const response = await axios.get(`${BASE_URL}/latest?base=${base}`);
+      const { date, rates } = response.data;
       this.apiRates = rates;
       this.date = date;
       this.historicalData = await fetchHistoricalData(base, this.target);
-      this.loaded = true;
     },
     updateCurrencies({ base, target }) {
       this.base = base;
@@ -82,7 +105,6 @@ export default {
     this.date = date;
 
     this.historicalData = await fetchHistoricalData(base, target);
-    this.loaded = true;
   },
   watch: {
     base() {
@@ -90,10 +112,8 @@ export default {
       updateRates(base);
     },
     target: async function() {
-      const { target, base } = this;
-      this.loaded = false;
+      const { base, target } = this;
       this.historicalData = await fetchHistoricalData(base, target);
-      this.loaded = true;
     }
   }
 };

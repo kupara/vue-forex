@@ -32,12 +32,14 @@ yarn lint
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
 
-### Features implemented (within time):
+### Features implemented:
+
 - unidirectional conversion with tests
 - chartJS line graph for the last 30 days
-   - The historical chart for now only shows data for EUR/USD.
-I attempted to fix the reactivity of the chart when changing the base currency but I ran out of time before fixing that part.
+  - The historical chart for now only shows data for EUR/USD.
 
-Note: 
-- I used vue-cli to set up the app since I just learnt Vue for the sake of this test 🙂
-- 2 issues fixed outside the 4hr timebox (sorting of data in the chart and making the target input readonly)
+### Improvements:
+
+- remove duplicate state in form
+- move chart data to computed property in app
+- fix reactivity in chart when currencies are updated.
