@@ -1,34 +1,44 @@
 <template>
   <div class="wrapper">
     <div class="input-group">
-      <label for="source">Source amount:</label>
-      <input
-        id="source"
-        type="number"
-        placeholder="Enter amount"
-        v-model="sourceValue"
-      />
-      <select v-model="base" id="sourceCurrency">
-        <option
-          v-for="(symbol, index) in symbols"
-          :key="index"
-          :value="symbol"
-          :selected="symbol === base"
-          >{{ symbol }}</option
+      <label for="source">
+        Source amount:
+        <input type="number" placeholder="Enter amount" v-model="sourceValue" />
+        <select
+          :value="base"
+          id="sourceCurrency"
+          @change="selectCurrency({ base: $event.target.value, target })"
         >
-      </select>
+          <option
+            v-for="(symbol, index) in symbols"
+            :key="index"
+            :value="symbol"
+            :selected="symbol === base"
+          >
+            {{ symbol }}
+          </option>
+        </select>
+      </label>
     </div>
     <div class="input-group">
-      <label for="target">Target amount:</label>
-      <input id="target" type="number" v-model="targetValue" :readonly="true" />
-      <select v-model="target" id="targetCurrency">
-        <option
-          v-for="(symbol, index) in symbols"
-          :value="symbol"
-          :key="'target' + index"
-          >{{ symbol }}</option
+      <label for="target">
+        Target amount:
+        <input type="number" v-model="targetValue" :readonly="true" />
+        <select
+          :value="target"
+          id="targetCurrency"
+          @change="selectCurrency({ base, target: $event.target.value })"
         >
-      </select>
+          <option
+            v-for="(symbol, index) in symbols"
+            :key="'target' + index"
+            :selected="symbol === target"
+            :value="symbol"
+          >
+            {{ symbol }}
+          </option>
+        </select>
+      </label>
     </div>
     <span> Date of retrieval: {{ date }}</span>
   </div>
@@ -36,38 +46,24 @@
 
 <script>
 export default {
-  name: "Form",
-  props: {
-    apiRates: Object,
-    date: String,
-    symbols: Array,
-    updateCurrencies: Function,
-    updateRates: Function
-  },
+  name: "CurrencyForm",
+  props: ["apiRates", "base", "date", "symbols", "target"],
   computed: {
     targetValue() {
-      const { target, apiRates } = this;
+      const { target, apiRates, base, sourceValue } = this;
+      if (target === base) return sourceValue;
 
-      return this.sourceValue * apiRates[target];
+      return sourceValue * apiRates[target];
     }
   },
   data() {
     return {
-      base: "EUR",
-      sourceValue: 0,
-      target: "USD",
-      rate: ""
+      sourceValue: 0
     };
   },
-  watch: {
-    base() {
-      const { updateCurrencies, updateRates, base, target } = this;
-      updateCurrencies(base, target);
-      updateRates(base);
-    },
-    target() {
-      const { updateCurrencies, base, target } = this;
-      updateCurrencies(base, target);
+  methods: {
+    selectCurrency(value) {
+      this.$emit("currencyChange", value);
     }
   }
 };
@@ -91,11 +87,14 @@ select {
   margin-left: 0.5rem;
 }
 
-input {
+input,
+label {
   flex: 1;
 }
 
 label {
+  display: flex;
+  align-items: center;
   padding: 0.75rem 0;
 }
 </style>

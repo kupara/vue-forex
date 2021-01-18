@@ -1,21 +1,21 @@
 <template>
   <div id="app">
-    <Header />
+    <simple-header />
     <div class="container">
       <div class="form">
-        <Form
-          :symbols="symbols"
+        <currency-form
+          @currencyChange="updateCurrencies"
           :apiRates="apiRates"
+          :base="base"
           :date="date"
-          :updateCurrencies="updateCurrencies"
-          :updateRates="updateRates"
+          :symbols="symbols"
+          :target="target"
         />
       </div>
-      <div class="history" v-if="Boolean(historicalData)">
-        <h3>Data for the last month EUR vs USD</h3>
-        <HistoryChart
-          :historicalData="historicalData"
-          :target="target"
+      <div class="history">
+        <h3>Data for the last month {{ base }} vs {{ target }}</h3>
+        <history-chart
+          :chartData="chartData"
           :options="{ responsive: true, maintainAspectRatio: false }"
         />
       </div>
@@ -25,8 +25,8 @@
 
 <script>
 import axios from "axios";
-import Form from "./components/Form.vue";
-import Header from "./components/Header.vue";
+import CurrencyForm from "./components/Form.vue";
+import SimpleHeader from "./components/Header.vue";
 import HistoryChart from "./components/Chart.vue";
 import { fetchHistoricalData } from "./utils";
 import BASE_URL from "./constants";
@@ -34,8 +34,8 @@ import BASE_URL from "./constants";
 export default {
   name: "App",
   components: {
-    Form,
-    Header,
+    CurrencyForm,
+    SimpleHeader,
     HistoryChart
   },
   data() {
@@ -49,21 +49,50 @@ export default {
   },
   computed: {
     symbols() {
-      const { apiRates } = this;
-      return apiRates ? ["EUR", ...Object.keys(apiRates)] : [];
+      const { apiRates, base } = this;
+      const rateKeys = [...Object.keys(apiRates)];
+      if (rateKeys.includes(base)) {
+        rateKeys.splice(rateKeys.indexOf(base), 1);
+        return [this.base, ...rateKeys.sort()];
+      }
+      return [base, ...rateKeys.sort()];
+    },
+    chartData() {
+      const { target, historicalData } = this;
+      if (historicalData) {
+        const { rates } = this.historicalData;
+        const labels = [...Object.keys(rates)];
+
+        labels.sort((a, b) => {
+          a = a.split("-").join("");
+          b = b.split("-").join("");
+          return a.localeCompare(b);
+        });
+
+        const data = labels.map(label => rates[label][target] || 1);
+        return {
+          labels,
+          datasets: [
+            {
+              label: "Historical data",
+              backgroundColor: "#2c3e50",
+              data
+            }
+          ]
+        };
+      }
+      return null;
     }
   },
   methods: {
     updateRates: async function(base) {
-      const response = await fetch(`${BASE_URL}/latest?base=${base}`, {
-        method: "GET"
-      });
-      const { date, rates } = await response.json();
+      const response = await axios.get(`${BASE_URL}/latest?base=${base}`);
+      const { date, rates } = response.data;
       this.apiRates = rates;
       this.date = date;
       this.historicalData = await fetchHistoricalData(base, this.target);
     },
-    updateCurrencies(base, target) {
+    updateCurrencies({ base, target }) {
       this.base = base;
       this.target = target;
     }
@@ -76,6 +105,16 @@ export default {
     this.date = date;
 
     this.historicalData = await fetchHistoricalData(base, target);
+  },
+  watch: {
+    base() {
+      const { updateRates, base } = this;
+      updateRates(base);
+    },
+    target: async function() {
+      const { base, target } = this;
+      this.historicalData = await fetchHistoricalData(base, target);
+    }
   }
 };
 </script>
